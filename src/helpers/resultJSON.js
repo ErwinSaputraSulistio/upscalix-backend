@@ -10,11 +10,11 @@ class ResultJSON {
     }
     static failed = (res, err) => {
         const errorMessage = errorValidation(err)
-        const { status, message } = errorMessage
+        const { status, error } = errorMessage
         res.status(status).json({
             status,
             response: "--> Not OK.",
-            message
+            error
         })
     }
 }

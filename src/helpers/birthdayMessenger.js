@@ -1,6 +1,8 @@
+import { config } from "dotenv"
 import axios from "axios"
 import UserModel from "../modules/user/model.js"
 
+config({ path: "../.env" })
 export default async function birthdayMessenger() {
     let usersToMail = []
 
@@ -16,7 +18,7 @@ export default async function birthdayMessenger() {
     }
     const fetchAxiosToMailAPI = async(data) => {
         try {
-            const result = await axios.post("https://email-service.digitalenvision.com.au/send-email", {
+            const result = await axios.post(process.env.EMAIL_API || "https://email-service.digitalenvision.com.au/send-email", {
                 email: data.email,
                 message: `Hey, ${data.fullName}, it's your birthday!`
             })
@@ -27,7 +29,9 @@ export default async function birthdayMessenger() {
                 sentTime
             })
         }
-        catch(err) { setTimeout(() => { fetchAxiosToMailAPI(data) }, [1000]) }
+        catch(err) { 
+            console.log(`Failed to sent birthday mail to ${data.email}, re-sent the email ...`)
+            setTimeout(() => { fetchAxiosToMailAPI(data) }, [1000]) }
     }
     const sendMailToUsers = () => {
         try {

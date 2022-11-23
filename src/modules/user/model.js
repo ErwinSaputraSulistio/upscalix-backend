@@ -1,35 +1,26 @@
 import Database from "../../configs/db.js"
 
 const collection = Database.userCollection()
+const modelWrapper = async(callback) => {
+    try { return await callback }
+    catch(err) { throw new Error(err) }
+}
 
 class UserModel {
-    static create = async(input) => {
-        try { 
-            const result = await collection.create(input)
-            return result
-        }
-        catch(err) { throw new Error(err) }
+    static create = (input) => {
+        return modelWrapper(collection.create(input))
     }
-    static findAll = async() => {
-        try {
-            const result = await collection.find()
-            return result
-        }
-        catch(err) { throw new Error(err) }
+    static findAll = () => { 
+        return modelWrapper(collection.find())
     }
-    static findAllByTimeToEmail = async(input) => {
-        try {
-            const result = await collection.find({ whenToEmail: { date: input.date, time: input.time } })
-            return result
-        }
-        catch(err) { throw new Error(err) }
+    static findAllByTimeToEmail = ({ date, time }) => {
+        return modelWrapper(collection.find({ whenToEmail: { date, time } }))
     }
-    static deleteOneById = async(id) => {
-        try {
-            const result = await collection.deleteOne({ _id: id })
-            return result
-        }
-        catch(err) { throw new Error(err) }
+    static updateById = (id, input) => {
+        return modelWrapper(collection.findOneAndUpdate({ _id: id }, input))
+    }
+    static deleteById = (id) => { 
+        return modelWrapper(collection.findOneAndDelete({ _id: id })) 
     }
 }
 

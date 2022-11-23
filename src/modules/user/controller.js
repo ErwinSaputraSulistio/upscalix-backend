@@ -1,49 +1,56 @@
 import UserModel from "./model.js"
 import ResultJSON from "../../helpers/resultJSON.js"
-import checkTimezone from "../../helpers/checkTimezone.js"
-import birthdayToJakartaTime from "../../helpers/birthdayToJakartaTime.js"
+import userDataConverter from "../../helpers/userDataConverter.js"
 
-const { create, findAll, deleteOneById } = UserModel
+const { create, findAll, updateById, deleteById } = UserModel
 const { success, failed } = ResultJSON
+const controllerWrapper = async(res, callback) => {
+    try { await callback() }
+    catch(err) { failed(res, err.message) }
+}
 
 class userController {
     static add = async(req, res) => {
-        try {
-            const { firstName, lastName, email, birthday, address, city, country } = req.body
-            if(firstName && lastName && email && birthday && address && city && country) {
-                const timezone = await checkTimezone(city, country)
-                const birthdayInJakarta = birthdayToJakartaTime(birthday, timezone.offset)
-                const newUserData = {
-                    email,
-                    fullName: firstName + " " + lastName,
-                    fullAddress: address + ", " + city + ", " + country,
-                    birthday,
-                    whenToEmail: birthdayInJakarta,
-                    timezone
-                 }
+        const { firstName, lastName, email, birthday, address, city, country } = req.body
+        if(firstName && lastName && email && birthday && address && city && country) {
+            controllerWrapper(res, async() => {
+                const newUserData = await userDataConverter(req.body)
                 const result = await create(newUserData)
                 if(result) { success(res, "User has been created!", result) }
-            }
-            else {
-                throw new Error("allInputsMustBeFilled")
-            }
+            })
         }
-        catch(err) { failed(res, err.message) }
+        else {
+            throw new Error("allInputsMustBeFilled")
+        }
     }
-    static getAll = async(req, res) => {
-        try {
+    static getAll = (req, res) => {
+        controllerWrapper(res, async() => {
             const result = await findAll()
             success(res, "Successfully get the list of users!", result) 
-        }
-        catch(err) { failed(res, err.message) }
+        })
     }
-    static remove = async(req, res) => {
-        try {
-            const id = req.params.id
-            await deleteOneById(id)
-            success(res, "Successfully deleted the user with id of " + id)
+    static edit = (req, res) => {
+        const { id } = req.params
+        const { firstName, lastName, email, birthday, address, city, country } = req.body
+        if(!firstName || !lastName || !email || !birthday || !address || !city || !country) {
+            throw new Error("allInputsMustBeFilled")
         }
-        catch(err) { failed(res, err.message) }
+        else {
+            controllerWrapper(res, async() => {
+                const updatedUserData = await userDataConverter(req.body)
+                const result = await updateById(id, updatedUserData)
+                if(result) { success(res, `User with ID of ${id} has been updated!`, updatedUserData) }
+                else { throw new Error("invalidParamsId") }
+            })
+        }
+    }
+    static remove = (req, res) => {
+        controllerWrapper(res, async() => {
+            const id = req.params.id
+            const result = await deleteById(id)
+            if(result) { success(res, "Successfully deleted the user with id of " + id) }
+            else { throw new Error("invalidParamsId") }
+        })
     }
 }
 

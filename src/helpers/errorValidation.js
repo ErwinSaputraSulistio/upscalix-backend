@@ -19,12 +19,16 @@ const errorValidation = (err) => {
         status = 403
         message = "This email is already used, try another one!"
     }
+    else if("invalidParamsId") {
+        status = 400
+        message = "Invalid params ID, none users were found with this ID!"
+    }
     else {
         status = 500
         message = "Oops! It seems that something's wrong with the server!"
     }
     
-    return { status, message }
+    return { status, error: message }
 }
 
 export default errorValidation

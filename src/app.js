@@ -1,8 +1,10 @@
+import { config } from "dotenv"
 import express from "express"
 import appRouter from "./configs/appRouter.js"
 import runCronJob from "./helpers/cronJob.js"
 import birthdayMessenger from "./helpers/birthdayMessenger.js"
 
+config({ path: '../.env' })
 const app = express()
 const port = process.env.PORT || 8000
 
@@ -14,7 +16,6 @@ const setAppUses = () => {
 const runAppServer = () => {
     setAppUses()
     runCronJob("* 0 * * * *", birthdayMessenger)
-    birthdayMessenger()
     app.listen(port, () => { console.log("Server is currently running on port " + port) })
 }
 

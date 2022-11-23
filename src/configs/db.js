@@ -1,6 +1,8 @@
+import { config } from "dotenv"
 import { connect, model, Schema } from "mongoose"
 
-connect("mongodb://localhost:27017/upscalix", { useNewUrlParser: true, useUnifiedTopology: true })
+config({ path: '../.env' })
+connect(process.env.DB_URI || "mongodb://localhost:27017/upscalix", { useNewUrlParser: true, useUnifiedTopology: true })
 
 class Database {
     static userCollection = () => {
